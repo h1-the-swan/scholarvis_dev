@@ -10,7 +10,6 @@ function egoGraphVis(data) {
 	var self = this;
 	self.data = data;
 	self.notEgoNodes = self.data.nodes.slice(1);
-	console.log(self.data);
 
 	// Defaults
 	// Graph SVG Dimensions
@@ -32,7 +31,7 @@ function egoGraphVis(data) {
 								 "spiral2"];
 	self.nodePlacement = self.nodePlacementOptions[1];
 	
-	self.zoomable = true;
+	self.zoomable = false;
 
 	self.svg;
     self.group;
