@@ -10,6 +10,13 @@ function egoGraphVis(data) {
 	var self = this;
 	self.data = data;
 	self.notEgoNodes = self.data.nodes.slice(1);
+
+	// Defaults
+	// Graph SVG Dimensions
+    // self.graphDimensions = {
+    //     width: 960,
+    //     height: 500
+    // };
 	self.graphDimensions;  // imported in self.importDefaultOptions below
 	
 	self.colorScheme;
@@ -93,12 +100,12 @@ function egoGraphVis(data) {
     self.destinationYear;
     self.currYear;
 
-	// // self.destinationNodeIndex = 200;  // TEST
-	// self.destinationNodeIndex = self.data.nodes.length-1;  // TEST
-    //
-	// //testing
-	// self.c = 0;
-	// self.tt = 0;
+	// self.destinationNodeIndex = 200;  // TEST
+	self.destinationNodeIndex = self.data.nodes.length-1;  // TEST
+
+	//testing
+	self.c = 0;
+	self.tt = 0;
 
 	// self.init();
 
@@ -124,6 +131,16 @@ egoGraphVis.prototype.init = function() {
 		.attr('id', 'graphSvg')
 		.attr('width', self.graphDimensions.width)
 		.attr('height', self.graphDimensions.height);
+    // Let the user know that it is loading:
+	// self.loadingText = self.svg.append('text')
+	// 	.attr('id', 'loadingText')
+	// 	.attr('text-anchor', 'middle')
+	// 	.attr('x', self.graphDimensions.width/2)
+	// 	.attr('y', self.graphDimensions.height/2)
+	// 	.attr('pointer-events', 'none')
+	// 	.attr('font-size', '3em')
+	// 	.style('opacity', .5)
+	// 	.text('Loading...');
 
     self.group = self.svg.append('g')
 		            .attr('class', 'graphContainer')
@@ -173,13 +190,35 @@ egoGraphVis.prototype.init = function() {
     var newNode = self.node.enter();
 
     newNode = newNode.append('svg:circle')
+		//test
 		.attr('class', 'node')
+		.attr('r', function(d) { return d.radius; })
+        // .attr('class', 'node hidden')
         // "T" attribute will keep track of the transition time elapsed
         .attr('T', 0)
         // Start with the node invisible
         .attr('r',1e-9)
         // Color by different categories of how similar the node's cluster is to the ego node
         .attr('fill', function(d) {
+            // The commented out code below uses the (infomap) clusters to color the nodes.
+            // For now, I will use the MAS Domains (loaded in domains.tsv above) instead.
+            //
+            // var clusterSplit = d.cluster.split(':');
+            // if (clusterSplit.slice(0,-1).join('') === self.egoNode.cluster.split(':').slice(0,-1).join('')) {
+            //     var thisColor = self.clusters[0].color;
+            // } else {
+            // // otherwise, color based on top level cluster
+            //         var clusterTopLevel = clusterSplit[0];
+            //         for (var i=1; i<self.clusters.length; i++) {
+            //                 if (self.clusters[i].cluster.split(':')[0] === clusterSplit[0])
+            //                     { var thisColor = self.clusters[i].color; }
+            //         }
+            // }
+            //
+            // d.color = thisColor;
+            // return thisColor;
+            //
+
             // color the nodes based on DomainID
 			if (d.color) {
 				return d.color;
@@ -199,14 +238,19 @@ egoGraphVis.prototype.init = function() {
 
     newNode.call(self.force.drag);
 
+	// self.egoNode = self.node.filter(function(d) { return d.idx === 0; });
+	
     // update link elements
 	self.force.links(self.data.links);
 
     self.link = self.link.data(self.data.links);
+    //self.link.exit().remove();
 	var newLink = self.link
 		.enter()
 		.append('svg:line')
 		.attr('class', function(d) {
+			// if (d.target === 0) { return 'link toEgo linkToEgo'; }
+			// else { return 'link notToEgo linkNotToEgo'; }
 			if (d.target === 0) { return 'link hidden toEgo linkToEgo'; }
 			else { return 'link hidden notToEgo linkNotToEgo'; }
 		})
@@ -220,6 +264,9 @@ egoGraphVis.prototype.init = function() {
 			} else {
 				return opVals.linkNotToEgo;
 			}
+			// return .5;
+			// if (d.target === 0) { return self.graphParams.opacityVals.value.linkToEgo; }
+			// else { return self.graphParams.opacityVals.value.linkNotToEgo; }
 		});
 
 	function placeNodes() {
@@ -229,7 +276,6 @@ egoGraphVis.prototype.init = function() {
 			case self.nodePlacementOptions[0]:
 				// Place the nodes using the force layout.
 				// Uses the force layout parameters in self.makeForce
-				newNode.each(function(d) { d.fixed = false; });
 				self.force.start();
 				// Execute force a bit, then stop
 				for (var i = 0; i<100000; ++i) self.force.tick();
@@ -244,6 +290,7 @@ egoGraphVis.prototype.init = function() {
 			        // initialRad = 60;
 			        initialRad = 20;
 				var numNodes = self.data.nodes.length;
+				// console.log(numNodes);
 				newNode.each(function(d, i) {
 					if (d.idx != 0) {
 						d.fixed = true;
@@ -313,11 +360,13 @@ egoGraphVis.prototype.init = function() {
 				}
 				var numNodes = self.data.nodes.length;
 				var angles = getAngles(numNodes, 7);
+				// console.log(angles);
 				var cx = self.egoNode.x,
 			        cy = self.egoNode.y,
 			        // initialRad = 60;
 			        initialRad = 20;
 				var numNodes = self.data.nodes.length;
+				console.log(numNodes);
 				newNode.each(function(d, i) {
 					if (d.idx != 0) {
 						d.fixed = true;
@@ -335,9 +384,11 @@ egoGraphVis.prototype.init = function() {
 						var powScale = d3.scale.linear().domain([1,Math.pow(numNodes, .3)]).range([0,60]);
 						var powScale = d3.scale.log().domain([100, numNodes+100]).range([0,60]);
 						// var thisPos = Math.pow(i+1, .7) * 1;
+						// console.log(thisPos);
 						var newi = Math.pow(i+1, .3);
 						var newi = (i)+100;
 						var thisPos = powScale(newi);
+						// console.log(thisPos)
 						var b = 7;
 						var thisPos = angles[i];
 						d.x = cx + (initialRad + b * thisPos) * Math.cos(thisPos);
@@ -353,9 +404,9 @@ egoGraphVis.prototype.init = function() {
 	}
     placeNodes();
 
-	// self.legendInit();
-	// self.addAuthorImage();
-	// self.addEventListeners();
+	self.legendInit();
+	self.addAuthorImage();
+	self.addEventListeners();
 
     self.yearTextDisplay = self.svg.append('svg:text')
                     .attr('x', self.graphDimensions.width * 8/9)
@@ -367,17 +418,7 @@ egoGraphVis.prototype.init = function() {
                     .style('opacity', 1e-9)
 					.text(self.data.graph.yearRange[0]);
 
-	// self.revealEgoNode();
-	//
-	self.node.attr("r", function(d) { return d.radius; });
-
-	self.link.attr("x1", function(d) { return d.source.x; })
-		.attr("y1", function(d) { return d.source.y; })
-		.attr("x2", function(d) { return d.target.x; })
-		.attr("y2", function(d) { return d.target.y; })
-		.classed("hidden", false);
-	self.graphParams.nodePlacement.value = self.nodePlacementOptions[0];
-	placeNodes();
+	self.revealEgoNode();
 
 };
 
@@ -431,7 +472,7 @@ egoGraphVis.prototype.makeForce = function () {
     return d3.layout.force()
         .size([self.graphDimensions.width, self.graphDimensions.height])
         .linkDistance(225)
-        //.linkDistance(function(d) { return self.ldScl(d.source.Year) ? 75 + self.ldScl(d.source.Year) : 0;})
+        //.linkDistance(function(d) { console.log(self.ldScl(d.source.Year)); return self.ldScl(d.source.Year) ? 75 + self.ldScl(d.source.Year) : 0;})
         //.linkStrength(function(d) { return self.lsScl(d.source.Year) ? self.lsScl(d.source.Year) : 0;})
         // .charge(-15)
         // .gravity(0.03)
@@ -450,6 +491,7 @@ egoGraphVis.prototype.importDefaultOptions = function(options) {
 
 	self.transitionTimePerYear = options.transitionTimePerYear;
 
+	console.log(options);
 
 };
 
@@ -457,6 +499,7 @@ egoGraphVis.prototype.getDomainsThisGraph = function() {
 	var self = this;
 
 	var domains = self.data.graph.Domains;
+	console.log(domains);
 
 	var maxDomains = self.colorScheme.length;
 	
@@ -478,6 +521,7 @@ egoGraphVis.prototype.getDomainsThisGraph = function() {
 			self.domainsThisGraph[i].color = self.colorScheme[maxDomains-1];
 		}
 	}
+	console.log(self.domainsThisGraph);
 };
 
 egoGraphVis.prototype.legendInit = function() {
@@ -491,6 +535,7 @@ egoGraphVis.prototype.legendInit = function() {
         .attr('class', 'legend')
         .attr('transform', 'translate('+padding+','+padding+')');
         // .style('opacity', 1e-9);
+	console.log(self.domainsThisGraph);
 
     var legendItem = self.legend.selectAll('g')
         .data(self.domainsThisGraph)
@@ -570,10 +615,12 @@ egoGraphVis.prototype.addAuthorImage = function() {
 
 		// Add content for HRA authors
 		var authorOrg = self.data.nodes[0].organization;
+		console.log(authorOrg);
 		if (typeof authorOrg != 'undefined') {
 			d3.tsv("static/healthra/orgs_with_links.tsv", function(error, org_data) {
 				if (error) throw error;
 				var pstyle = 'style="margin: 0; padding: 0; font-size: .85em"'
+				console.log(org_data);
 				for (var i = 0, len = org_data.length; i < len; i++) {
 					if (org_data[i]['org_name'] == authorOrg) {
 						var nameFromTSV = org_data[i]['match_name'];
@@ -585,7 +632,7 @@ egoGraphVis.prototype.addAuthorImage = function() {
 								.html('<a href="' + orgLink + '" target="_blank"><p ' + pstyle + '>' + nameFromTSV + '</p>');
 							var authorImage = addImage(orgImgUrl);
 							authorImage.style('cursor', 'pointer');
-							authorImage.on('click', function() { window.open(orgLink, '_blank')});
+							authorImage.on('click', function() { console.log(orgLink); window.open(orgLink, '_blank')});
 						} else {
 							self.authorImageDiv
 								.append('xhtml:p')
@@ -608,6 +655,7 @@ egoGraphVis.prototype.addAuthorImage = function() {
 
 	// If an image URL is included in the data:
 	var AuthorImgUrl = self.data.nodes[0].AuthorImgUrl || self.data.nodes[0].ImgURL;
+	console.log(AuthorImgUrl);
 	if (typeof AuthorImgUrl != 'undefined') {
 		addImage(AuthorImgUrl);
 		return;
@@ -696,6 +744,7 @@ egoGraphVis.prototype.addEventListeners = function() {
 			url: $SCRIPT_ROOT + '/_vis_get_doi',
 			data: {paperid: paperid},
 			success: function(result) {
+				console.log(result['doi']);
 				var doi = result['doi'];
 				if (doi) {
 					var url = 'https://doi.org/' + doi;
@@ -714,6 +763,7 @@ egoGraphVis.prototype.addEventListeners = function() {
 			url: $SCRIPT_ROOT + '/_vis_get_citation',
 			data: {paperid: paperid},
 			success: function(result) {
+				console.log(result['citation']);
 				thisNode.attr('title', result['citation']);
 			}
 		});
@@ -870,6 +920,7 @@ egoGraphVis.prototype.animateToDestinationNode = function() {
         //     check for year
         //     drawNode();
     if (self.currNodeIndex === self.destinationNodeIndex) {
+        console.log('goto finish');
         self.finishAnimation();
     } else if (self.currNodeIndex < self.destinationNodeIndex) {
 		self.animationState = 'forward';
@@ -888,6 +939,7 @@ egoGraphVis.prototype.continue = function() {
 	var self = this;
 
     // if (self.currNodeIndex === self.destinationNodeIndex) {
+    //     console.log('goto finish');
     //     self.finishAnimation();
     // if (self.currNodeIndex < self.destinationNodeIndex) {
     //     self.drawNode();
@@ -926,8 +978,14 @@ egoGraphVis.prototype.checkYear = function() {
 	} else if (newYear > oldYear) {
 		// trying to debug timing issues
 		// looks like timing is just inherently inconsistent. there seems to be a delay with this method (calling the next node drawing in transition.each('end') )
-		// self.c=0;
-		// self.tt=0;
+		// console.log(self.currYear);
+		// console.log('c '+self.c);
+		// console.log('tt '+self.tt);
+		// console.log('tt over c '+self.tt/self.c);
+		// console.log('transitionTimePerNode '+self.transitionTimePerNode);
+		// console.log('error '+(self.transitionTimePerNode)/(self.tt/self.c));
+		self.c=0;
+		self.tt=0;
 		self.currYear++;
 		self.beginNewYear();
 	} else if (newYear < oldYear) {
@@ -1041,10 +1099,11 @@ egoGraphVis.prototype.drawNode = function() {
 		.each('end', function(d) {
 			// var t1 = performance.now();
 			// self.tt = self.tt + (t1-t0);
-			// self.c++;
+			self.c++;
 			if (self.zoomable === true) {
 				self.checkZoom(d);
 			}
+			// console.log(t1-t0 + "milliseconds");
 			self.animateToDestinationNode();
 			drawLinks(d);
         // .each(function(d) {
@@ -1082,7 +1141,7 @@ egoGraphVis.prototype.drawNode = function() {
             // Put up annotation when the highest Eigenfactor node appears
             // Commented out because it happens too early for this paper and interferes with flow
             //if (d.EF === d3.max(self.allNodes, function(dd) { return dd.EF; }))
-                    //{ self.annotationHighestEF(d); }
+                    //{ console.log('highest EF'); self.annotationHighestEF(d); }
 
             // else self.animateToDestinationNode();
 
@@ -1131,12 +1190,15 @@ egoGraphVis.prototype.finishAnimation = function() {
 	$.event.trigger({
 		type: "animationFinished",
 	});
+	console.log('finished');
+	console.log(self.currNodeIndex);
 };
 
 egoGraphVis.prototype.newDestinationNode = function(destinationYear) {
 	var self = this;
 
 	self.destinationYear = destinationYear;
+	console.log(self.destinationYear);
 	self.getDestinationNode();
 	
 	// make sure the current node is included:
