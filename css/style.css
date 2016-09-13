@@ -1,0 +1,154 @@
+body {
+  font-family: Baskerville;
+  text-align: center;
+  padding: 20px;
+}
+
+.hidden {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+#header #homeLink {
+	color: inherit;
+	text-decoration: none;
+}
+
+h1 {
+  font-weight: normal;
+  font-size: 1.8em;
+	margin-bottom: .25em;
+}
+
+h2 {
+	font-weight: normal;
+	font-style: oblique;
+	font-size: 1.2em;
+	margin-top: 0;
+	margin-bottom: .5em;
+}
+
+ul {
+	list-style: none;
+}
+
+#graphDiv,#lineChartDiv {
+  display: block;
+  clear: left;
+  position: relative;
+}
+
+.link {
+  stroke: #000;
+}
+
+.node {
+  stroke: #fff;
+}
+
+.legend {
+  width: 75%;
+  text-align: left;
+  font-size: .8em;
+  pointer-events: none;
+}
+
+#description p,ul {
+  margin: 0;
+  font-size: .8em;
+}
+
+#description ul {
+	list-style-type: none;
+}
+
+.lineChartTitle {
+	font-size: .75em;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.y.axis .tick {
+  font-size: .75em;
+}
+
+.area {
+  fill-opacity: .15;
+	/* fill: url(#line-gradient); */
+}
+
+.line {
+  stroke-width: 1.5px;
+  fill: none;
+	/* stroke: url(#line-gradient); */
+}
+
+.yearTick {
+    cursor: default;
+}
+
+.yearTick:hover {
+    text-decoration: underline overline;
+}
+
+.annotation {
+  font-size: 1.1em;
+  pointer-events: none;
+}
+
+#linkToAbout {
+	margin-top: 0;
+	font-size: 1.25em;
+  cursor: default;
+}
+
+#linkToAbout:hover {
+    text-decoration: underline;
+}
+
+.annotation p {
+  margin: 0;
+}
+
+#nodeInfo p{
+  margin: 0;
+  padding: 0;
+  font-size: .7em;
+}
+
+#nodeInfo .line1{
+  margin-top: 5px;
+}
+#nodeInfo .line2{
+  margin-bottom: 5px;
+}
+
+#revealControlPanel {
+	margin-top: 3em;
+}
+
+button {
+  font-size: 9px;
+}
+
+.checkBox {
+  font-size: .8em;
+  display: block;
+}
+
+.nodeTooltip {
+  padding: 0 1em;
+  background-color: #949372;
+  text-align: left;
+}
+
+.nodeTooltip p {
+  color: white;
+  opacity: 1;
+}
+
